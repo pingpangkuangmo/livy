@@ -562,11 +562,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.6</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.3.2</version>
         </plugin>
@@ -588,6 +583,21 @@
           <artifactId>scala-maven-plugin</artifactId>
           <version>3.2.2</version>
           <executions>
+            <execution>
+                <id>scala-compile-first</id>
+                <phase>process-resources</phase>
+                <goals>
+                    <goal>add-source</goal>
+                    <goal>compile</goal>
+                </goals>
+            </execution>
+            <execution>
+                <id>scala-test-compile</id>
+                <phase>process-test-resources</phase>
+                <goals>
+                    <goal>testCompile</goal>
+                </goals>
+            </execution>
             <execution>
               <goals>
                 <goal>compile</goal>
@@ -618,6 +628,12 @@
               <jvmArg>-XX:MaxPermSize=${MaxPermGen}</jvmArg>
               <jvmArg>-XX:ReservedCodeCacheSize=${CodeCacheSize}</jvmArg>
             </jvmArgs>
+            <sources>
+                <source>src/main/scala</source>
+                <source>src/main/java</source>
+                <source>src/test/scala</source>
+                <source>src/test/java</source>
+            </sources>
           </configuration>
         </plugin>
 
@@ -697,6 +713,12 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <executions>
           <execution>
+                <phase>compile</phase>
+                <goals>
+                    <goal>compile</goal>
+                </goals>
+          </execution>
+          <execution>
             <id>default-compile</id>
             <phase>none</phase>
           </execution>
@@ -723,9 +745,6 @@
             <requireJavaVersion>
               <version>[${minJavaVersion}.0,${maxJavaVersion}.1000}]</version>
             </requireJavaVersion>
-            <requireOS>
-              <family>unix</family>
-            </requireOS>
           </rules>
         </configuration>
         <executions>
@@ -758,68 +777,6 @@
         <artifactId>scala-maven-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <!-- Cleans up files that tests append to (because we have two test plugins). -->
-          <execution>
-            <id>pre-test-clean</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <delete file="${project.build.directory}/unit-tests.log" quiet="true" />
-                <delete file="${project.build.directory}/jacoco.exec" quiet="true" />
-                <delete dir="${project.build.directory}/tmp" quiet="true" />
-              </target>
-            </configuration>
-          </execution>
-          <!-- Create the temp directory to be  used by tests. -->
-          <execution>
-            <id>create-tmp-dir</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <mkdir dir="${project.build.directory}/tmp" />
-              </target>
-            </configuration>
-          </execution>
-          <!--
-            Copy the template scalastyle / checkstyle configuration and replace the copyright
-            header.
-          -->
-          <execution>
-            <id>setup-style-checker</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <copy file="${execution.root}/scalastyle.xml"
-                  tofile="${project.build.directory}/scalastyle.xml" />
-                <replace file="${project.build.directory}/scalastyle.xml"
-                  token="{{COPYRIGHT_HEADER}}"
-                  value="${copyright.header}" />
-                <copy file="${execution.root}/checkstyle.xml"
-                  tofile="${project.build.directory}/checkstyle.xml" />
-                <echo file="${project.build.directory}/checkstyle.header"
-                  message="${copyright.header}" />
-                <replace file="${project.build.directory}/checkstyle.xml"
-                  token="{{HEADER_FILE}}"
-                  value="${project.build.directory}/checkstyle.header" />
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <groupId>org.scalastyle</groupId>
